@@ -202,7 +202,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def main():
+async def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
     app.add_handler(CommandHandler("start", cmd_start))
@@ -212,8 +212,12 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     logger.info("Chadbot is running...")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    async with app:
+        await app.start()
+        await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+        await asyncio.Event().wait()  # run forever
 
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
