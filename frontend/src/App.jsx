@@ -91,7 +91,7 @@ function PromptEditor({ toast }) {
     <section style={styles.card}>
       <div style={styles.cardHeader}>
         <span style={styles.cardTitle}>SYSTEM PROMPT</span>
-        <span style={{ ...styles.badge, background: isDirty ? "#c8a84b22", color: "#c8a84b", border: "1px solid #c8a84b44" }}>
+        <span style={isDirty ? { ...styles.badge, background: "#c8a84b22", color: "#c8a84b", border: "1px solid #c8a84b44" } : styles.badge}>
           {isDirty ? "● unsaved" : "● synced"}
         </span>
       </div>
