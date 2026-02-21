@@ -4,6 +4,7 @@ Deps: pip install python-telegram-bot anthropic supabase python-dotenv
 """
 
 import os
+import re
 import base64
 import logging
 from io import BytesIO
@@ -184,7 +185,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         system_prompt = get_system_prompt()
         examples = get_active_examples()
         reply = await analyse_with_claude(image_b64, system_prompt, examples, caption)
-        bubbles = [b.strip() for b in reply.split("---") if b.strip()]
+        bubbles = [b.strip() for b in re.split(r'\s*---\s*', reply) if b.strip()]
         for bubble in bubbles:
             await update.message.reply_text(bubble)
     except Exception as e:
