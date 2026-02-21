@@ -184,7 +184,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         system_prompt = get_system_prompt()
         examples = get_active_examples()
         reply = await analyse_with_claude(image_b64, system_prompt, examples, caption)
-        await update.message.reply_text(reply)
+        bubbles = [b.strip() for b in reply.split("---") if b.strip()]
+        for bubble in bubbles:
+            await update.message.reply_text(bubble)
     except Exception as e:
         logger.error(f"Error processing photo: {e}")
         await update.message.reply_text("⚠️ Something went wrong analysing that. Try again?")
