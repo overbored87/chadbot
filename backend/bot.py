@@ -9,7 +9,7 @@ import base64
 import logging
 from io import BytesIO
 
-import anthropic
+from openai import OpenAI
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from telegram import Update
@@ -31,7 +31,7 @@ supabase: Client = create_client(
     os.environ["SUPABASE_URL"],
     os.environ["SUPABASE_KEY"],
 )
-claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+openai = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 ALLOWED_USER_ID = int(os.environ.get("ALLOWED_TELEGRAM_USER_ID", "0"))  # 0 = open
@@ -91,12 +91,8 @@ async def analyse_with_claude(
     for ex in examples:
         if ex.get("screenshot_base64"):
             user_content.append({
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": "image/jpeg",
-                    "data": ex["screenshot_base64"],
-                },
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{ex['screenshot_base64']}"},
             })
             user_content.append({
                 "type": "text",
@@ -105,26 +101,24 @@ async def analyse_with_claude(
 
     # The actual screenshot from the user
     user_content.append({
-        "type": "image",
-        "source": {
-            "type": "base64",
-            "media_type": "image/jpeg",
-            "data": image_b64,
-        },
+        "type": "image_url",
+        "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"},
     })
     user_content.append({
         "type": "text",
         "text": caption or "Analyse this screenshot and give me your best response suggestions.",
     })
 
-    response = claude.messages.create(
-        model="claude-sonnet-4-5",
+    response = openai.chat.completions.create(
+        model="gpt-4o",
         max_tokens=1024,
-        system=full_system,
-        messages=[{"role": "user", "content": user_content}],
+        messages=[
+            {"role": "system", "content": full_system},
+            {"role": "user", "content": user_content},
+        ],
     )
 
-    return response.content[0].text
+    return response.choices[0].message.content
 
 
 # ── Telegram handlers ─────────────────────────────────────────────────────────
